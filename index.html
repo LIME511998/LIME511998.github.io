@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小度聊天论坛</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            color: #202124;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: #4285f4;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .channel-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e8eaed;
+        }
+        
+        .channel-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .channel-tab.active {
+            border-bottom-color: #4285f4;
+            color: #4285f4;
+            font-weight: bold;
+        }
+        
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #ffffff;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #e8eaed;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .username {
+            font-weight: bold;
+            color: #4285f4;
+        }
+        
+        .timestamp {
+            color: #5f6368;
+        }
+        
+        .message-content {
+            word-wrap: break-word;
+        }
+        
+        .input-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        input, button {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #dadce0;
+            font-size: 1rem;
+        }
+        
+        input {
+            flex: 1;
+        }
+        
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #3367d6;
+        }
+        
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e8eaed;
+        }
+        
+        .level-indicator {
+            background: #34a853;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .voice-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .voice-btn {
+            background: #34a853;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .voice-btn i {
+            color: white;
+            font-size: 24px;
+        }
+        
+        .system-message {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .welcome-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .welcome-screen h2 {
+            margin-bottom: 20px;
+            color: #4285f4;
+        }
+        
+        .welcome-screen input {
+            margin: 15px 0;
+            text-align: center;
+            width: 80%;
+            max-width: 300px;
+        }
+        
+        .welcome-screen button {
+            background: #34a853;
+            width: 80%;
+            max-width: 300px;
+        }
+        
+        .welcome-screen button:hover {
+            background: #2e8b47;
+        }
+        
+        .welcome-screen .error {
+            color: #ea4335;
+            margin-top: 10px;
+            display: none;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 0;
+            }
+            
+            .channel-tabs {
+                flex-direction: column;
+            }
+            
+            .channel-tab {
+                border-bottom: 1px solid #e8eaed;
+                border-left: 3px solid transparent;
+            }
+            
+            .channel-tab.active {
+                border-left-color: #4285f4;
+                border-bottom-color: #e8eaed;
+            }
+            
+            .input-area {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>小度聊天论坛</h1>
+            <p class="subtitle">主区 · 聊天区 · 刷屏区</p>
+        </header>
+        
+        <div id="welcome-view" class="welcome-screen">
+            <h2>欢迎来到小度聊天论坛</h2>
+            <p>请设置您的用户名，加入我们的聊天社区</p>
+            <input type="text" id="username-input" placeholder="请输入您的用户名" maxlength="15">
+            <button id="register-btn">加入论坛</button>
+            <div class="error" id="register-error">用户名不能为空！</div>
+        </div>
+        
+        <div id="chat-view" class="content hidden">
+            <div class="user-info">
+                <div>
+                    <span id="current-username">用户名</span>
+                    <div class="level-indicator" id="level-display">Lv.1 (0/10)</div>
+                </div>
+                <div id="status-indicator">
+                    <span>在线</span>
+                </div>
+            </div>
+            
+            <div class="channel-tabs">
+                <div class="channel-tab active" data-channel="main">主区</div>
+                <div class="channel-tab" data-channel="chat">聊天区</div>
+                <div class="channel-tab" data-channel="spam">刷屏区</div>
+            </div>
+            
+            <div class="messages" id="messages">
+                <!-- 消息将通过JavaScript动态加载 -->
+            </div>
+            
+            <div class="input-area">
+                <input type="text" id="message-input" placeholder="输入消息...">
+                <button id="send-btn">发送</button>
+            </div>
+            
+            <div class="voice-controls">
+                <div class="voice-btn" id="voice-input-btn">
+                    <i>🎤</i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 等级系统：每级所需经验值
+        const levelRequirements = [0, 10, 25, 50, 100, 200, 350, 500, 700, 1000];
+        
+        // 三个频道的初始消息
+        const channels = {
+            main: [
+                { user: "系统", content: "欢迎来到主区，这里可以讨论各种话题", time: "10:00", type: "system" }
+            ],
+            chat: [
+                { user: "系统", content: "聊天区，随意闲聊", time: "09:30", type: "system" }
+            ],
+            spam: [
+                { user: "系统", content: "刷屏区，可以快速刷消息", time: "11:00", type: "system" }
+            ]
+        };
+        
+        // DOM元素
+        const welcomeView = document.getElementById('welcome-view');
+        const chatView = document.getElementById('chat-view');
+        const usernameInput = document.getElementById('username-input');
+        const registerBtn = document.getElementById('register-btn');
+        const registerError = document.getElementById('register-error');
+        const currentUsername = document.getElementById('current-username');
+        const levelDisplay = document.getElementById('level-display');
+        const channelTabs = document.querySelectorAll('.channel-tab');
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const voiceInputBtn = document.getElementById('voice-input-btn');
+        
+        // 当前状态
+        let currentUser = null;
+        let currentChannel = 'main';
+        let messageCount = 0;
+        let currentLevel = 1;
+        let currentExp = 0;
+        let speechQueue = [];
+        let isSpeaking = false;
+        let hasPromptedForMessage = false;
+        
+        // 初始化
+        function init() {
+            // 检查是否有保存的用户数据
+            const savedUser = localStorage.getItem('forumUser');
+            if (savedUser) {
+                const userData = JSON.parse(savedUser);
+                currentUser = userData.username;
+                messageCount = userData.messageCount || 0;
+                currentLevel = userData.level || 1;
+                currentExp = userData.exp || 0;
+                
+                showChatView();
+                updateLevelDisplay();
+                speakWelcomeMessage();
+            } else {
+                showWelcomeView();
+            }
+            
+            setupEventListeners();
+        }
+        
+        // 显示欢迎界面
+        function showWelcomeView() {
+            welcomeView.classList.remove('hidden');
+            chatView.classList.add('hidden');
+            registerError.style.display = 'none';
+        }
+        
+        // 显示聊天界面
+        function showChatView() {
+            welcomeView.classList.add('hidden');
+            chatView.classList.remove('hidden');
+            currentUsername.textContent = currentUser;
+            loadChannelMessages(currentChannel);
+        }
+        
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 注册按钮事件
+            registerBtn.addEventListener('click', registerUser);
+            
+            // 回车键注册
+            usernameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') registerUser();
+            });
+            
+            // 频道切换事件
+            channelTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // 移除所有active类
+                    channelTabs.forEach(t => t.classList.remove('active'));
+                    // 添加active类到当前标签
+                    this.classList.add('active');
+                    // 切换频道
+                    switchChannel(this.dataset.channel);
+                });
+            });
+            
+            // 发送消息事件
+            sendBtn.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            
+            // 语音输入事件
+            voiceInputBtn.addEventListener('click', startVoiceInput);
+        }
+        
+        // 用户注册
+        function registerUser() {
+            const username = usernameInput.value.trim();
+            if (username) {
+                currentUser = username;
+                messageCount = 0;
+                currentLevel = 1;
+                currentExp = 0;
+                
+                // 保存用户数据
+                localStorage.setItem('forumUser', JSON.stringify({
+                    username: currentUser,
+                    messageCount: messageCount,
+                    level: currentLevel,
+                    exp: currentExp
+                }));
+                
+                showChatView();
+                speakWelcomeMessage();
+            } else {
+                // 显示错误信息
+                registerError.style.display = 'block';
+                usernameInput.style.borderColor = '#ea4335';
+            }
+        }
+        
+        // 播报欢迎消息
+        function speakWelcomeMessage() {
+            const nextLevelExp = levelRequirements[currentLevel] - currentExp;
+            const welcomeText = `${currentUser}，欢迎来到论坛，您目前的等级为${currentLevel}级，升到下一级还需${nextLevelExp}点经验`;
+            
+            // 添加到语音队列
+            speechQueue.push(welcomeText);
+            
+            // 播报频道消息
+            playChannelMessages();
+            
+            // 开始处理语音队列
+            processSpeechQueue();
+        }
+        
+        // 处理语音队列
+        function processSpeechQueue() {
+            if (speechQueue.length > 0 && !isSpeaking) {
+                isSpeaking = true;
+                const text = speechQueue.shift();
+                
+                // 使用Web Speech API播报
+                if ('speechSynthesis' in window) {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = 'zh-CN';
+                    utterance.rate = 1.0;
+                    utterance.pitch = 1.0;
+                    
+                    utterance.onend = () => {
+                        isSpeaking = false;
+                        setTimeout(processSpeechQueue, 500);
+                    };
+                    
+                    speechSynthesis.speak(utterance);
+                } else {
+                    // 如果不支持语音合成，使用alert模拟
+                    alert(text);
+                    isSpeaking = false;
+                    setTimeout(processSpeechQueue, 1000);
+                }
+            } else if (speechQueue.length === 0 && !isSpeaking) {
+                // 所有消息播报完毕，只有在未提示过时才提示留言
+                if (!hasPromptedForMessage) {
+                    speechQueue.push("请留下你的留言");
+                    hasPromptedForMessage = true;
+                    processSpeechQueue();
+                }
+            }
+        }
+        
+        // 播报频道消息
+        function playChannelMessages() {
+            const messages = channels[currentChannel];
+            
+            // 清空语音队列
+            speechQueue = [];
+            
+            // 添加频道消息到语音队列
+            messages.forEach(msg => {
+                if (msg.type === 'system') {
+                    speechQueue.push(`系统消息：${msg.content}`);
+                } else {
+                    speechQueue.push(`${msg.user}说：${msg.content}`);
+                }
+            });
+        }
+        
+        // 切换频道
+        function switchChannel(channel) {
+            currentChannel = channel;
+            loadChannelMessages(channel);
+            
+            // 播报频道切换
+            speechQueue.push(`你已切换到${getChannelName(channel)}`);
+            
+            // 播报频道消息
+            playChannelMessages();
+            processSpeechQueue();
+        }
+        
+        // 获取频道名称
+        function getChannelName(channel) {
+            switch(channel) {
+                case 'main': return '主区';
+                case 'chat': return '聊天区';
+                case 'spam': return '刷屏区';
+                default: return '未知区域';
+            }
+        }
+        
+        // 加载频道消息
+        function loadChannelMessages(channel) {
+            messagesContainer.innerHTML = '';
+            const messages = channels[channel];
+            
+            messages.forEach(msg => {
+                addMessageToDOM(msg.user, msg.content, msg.time, msg.type);
+            });
+        }
+        
+        // 发送消息
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                // 添加到当前频道
+                addMessageToChannel(currentChannel, currentUser, message);
+                
+                // 添加到DOM
+                const now = new Date();
+                const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                addMessageToDOM(currentUser, message, timeString, 'user');
+                
+                // 清空输入框
+                messageInput.value = '';
+                
+                // 增加经验值
+                currentExp++;
+                messageCount++;
+                
+                // 检查等级提升
+                checkLevelUp();
+                
+                // 更新显示
+                updateLevelDisplay();
+                
+                // 保存用户数据
+                localStorage.setItem('forumUser', JSON.stringify({
+                    username: currentUser,
+                    messageCount: messageCount,
+                    level: currentLevel,
+                    exp: currentExp
+                }));
+                
+                // 播报成功消息
+                speechQueue.push("留言成功");
+                hasPromptedForMessage = false; // 重置提示标志
+                processSpeechQueue();
+            } else {
+                // 没有检测到留言
+                speechQueue.push("没有检测到留言，请重新尝试");
+                processSpeechQueue();
+            }
+        }
+        
+        // 添加消息到频道
+        function addMessageToChannel(channel, user, content) {
+            const now = new Date();
+            const timeString = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            
+            channels[channel].push({
+                user: user,
+                content: content,
+                time: timeString,
+                type: 'user'
+            });
+        }
+        
+        // 添加消息到DOM
+        function addMessageToDOM(user, content, time, type) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${type === 'system' ? 'system-message' : ''}`;
+            
+            messageElement.innerHTML = `
+                <div class="message-header">
+                    <span class="username">${user}</span>
+                    <span class="timestamp">${time}</span>
+                </div>
+                <div class="message-content">${content}</div>
+            `;
+            
+            messagesContainer.appendChild(messageElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // 检查等级提升
+        function checkLevelUp() {
+            if (currentLevel < levelRequirements.length - 1 && 
+                currentExp >= levelRequirements[currentLevel]) {
+                currentLevel++;
+                speechQueue.push(`恭喜！您的等级提升到${currentLevel}级`);
+            }
+        }
+        
+        // 更新等级显示
+        function updateLevelDisplay() {
+            const nextLevelExp = levelRequirements[currentLevel] - currentExp;
+            levelDisplay.textContent = `Lv.${currentLevel} (${currentExp}/${levelRequirements[currentLevel]})`;
+        }
+        
+        // 语音输入功能
+        function startVoiceInput() {
+            // 检查浏览器是否支持语音识别
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = 'zh-CN';
+                
+                recognition.start();
+                
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    messageInput.value = transcript;
+                };
+                
+                recognition.onerror = (event) => {
+                    alert('语音识别失败，请重试');
+                };
+            } else {
+                alert("您的浏览器不支持语音识别功能");
+            }
+        }
+        
+        // 初始化应用
+        init();
+    </script>
+</body>
+</html>
